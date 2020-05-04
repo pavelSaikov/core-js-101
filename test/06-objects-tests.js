@@ -3,7 +3,7 @@ const assert = require('assert');
 const tasks = require('../src/06-objects-tasks');
 it.optional = require('../extensions/it-optional');
 
-describe('06-objects-tasks', () => {
+describe.only('06-objects-tasks', () => {
   it.optional('Rectangle constructor should return the rectangle object', () => {
     const rect = new tasks.Rectangle(10, 20);
 

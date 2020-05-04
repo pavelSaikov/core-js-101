@@ -2,7 +2,7 @@ const assert = require('assert');
 const tasks = require('../src/05-regex-tasks');
 it.optional = require('../extensions/it-optional');
 
-describe.only('05-regex-tasks', () => {
+describe('05-regex-tasks', () => {
   it.optional('getRegexForGuid should match the valid GUID', () => {
     const result = tasks.getRegexForGuid();
 
