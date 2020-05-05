@@ -121,65 +121,46 @@ const identifierPairs = {
   defaultValue: -1,
 };
 
+class CssSelector {
+  constructor({
+    tag,
+    identifier,
+    classes,
+    attributes,
+    pseudoClasses,
+    pseudoElem,
+    previousCallIdentifier,
+  }) {
+    this.tag = tag;
+    this.identifier = identifier;
+    this.classes = classes;
+    this.attributes = attributes;
+    this.pseudoClasses = pseudoClasses;
+    this.pseudoElem = pseudoElem;
+    this.previousCallIdentifier = previousCallIdentifier;
+  }
 
-const cssSelectorBuilder = {
-  tag: '',
-  identifier: '',
-  classes: [],
-  attributes: [],
-  pseudoClasses: [],
-  pseudoElem: '',
-  previousCallIdentifier: identifierPairs.defaultValue,
-
-
-  element(value) {
-    if (this.previousCallIdentifier > identifierPairs.element) {
-      this.resetObject();
+  element(element) {
+    this.element = element; // Useless field. Except warnings of linter.
+    if (this.previousCallIdentifier === identifierPairs.element) {
       throw new Error(
-        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
+        'Element, id and pseudo-element should not occur more then one time inside the selector',
       );
     }
 
-    const {
-      id, attr, pseudoClass, pseudoElement, stringify, combine, resetObject,
-    } = this;
-    const cls = this.class;
-    this.previousCallIdentifier = identifierPairs.element;
+    throw new Error(
+      'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
+    );
+  }
 
-    return {
-      tag: value,
-      identifier: '',
-      classes: [],
-      attributes: [],
-      pseudoClasses: [],
-      pseudoElem: '',
-      previousCallIdentifier: identifierPairs.element,
-      element: () => {
-        throw new Error(
-          'Element, id and pseudo-element should not occur more then one time inside the selector',
-        );
-      },
-      id,
-      class: cls,
-      attr,
-      pseudoClass,
-      pseudoElement,
-      stringify,
-      combine,
-      resetObject,
-    };
-  },
-
-  id(value) {
+  id(id) {
     if (this.identifier.length !== 0) {
-      this.resetObject();
       throw new Error(
         'Element, id and pseudo-element should not occur more then one time inside the selector',
       );
     }
 
     if (this.previousCallIdentifier > identifierPairs.id) {
-      this.resetObject();
       throw new Error(
         'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
       );
@@ -187,13 +168,12 @@ const cssSelectorBuilder = {
 
     this.previousCallIdentifier = identifierPairs.id;
 
-    this.identifier = value;
+    this.identifier = id;
     return this;
-  },
+  }
 
-  class(value) {
+  class(domClass) {
     if (this.previousCallIdentifier > identifierPairs.class) {
-      this.resetObject();
       throw new Error(
         'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
       );
@@ -201,13 +181,12 @@ const cssSelectorBuilder = {
 
     this.previousCallIdentifier = identifierPairs.class;
 
-    this.classes.push(value);
+    this.classes.push(domClass);
     return this;
-  },
+  }
 
-  attr(value) {
+  attr(attr) {
     if (this.previousCallIdentifier > identifierPairs.attribute) {
-      this.resetObject();
       throw new Error(
         'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
       );
@@ -215,44 +194,35 @@ const cssSelectorBuilder = {
 
     this.previousCallIdentifier = identifierPairs.attribute;
 
-    this.attributes.push(value);
+    this.attributes.push(attr);
     return this;
-  },
+  }
 
-  pseudoClass(value) {
+  pseudoClass(psClass) {
     if (this.previousCallIdentifier > identifierPairs.pseudoClass) {
-      this.resetObject();
       throw new Error(
         'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
       );
     }
 
-    this.previousCall = 'pseudo-class';
+    this.previousCallIdentifier = identifierPairs.pseudoClass;
 
-    this.pseudoClasses.push(value);
+    this.pseudoClasses.push(psClass);
     return this;
-  },
+  }
 
-  pseudoElement(value) {
+  pseudoElement(psElement) {
     if (this.pseudoElem.length !== 0) {
-      this.resetObject();
       throw new Error(
         'Element, id and pseudo-element should not occur more then one time inside the selector',
       );
     }
 
-    if (this.previousCallIdentifier > identifierPairs.pseudoElement) {
-      this.resetObject();
-      throw new Error(
-        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
-      );
-    }
+    this.previousCallIdentifier = identifierPairs.pseudoElement;
 
-    this.previousCall = 'pseudo-element';
-
-    this.pseudoElem = value;
+    this.pseudoElem = psElement;
     return this;
-  },
+  }
 
   stringify() {
     const tagStr = this.tag.length === 0 ? '' : `${this.tag}`;
@@ -276,9 +246,82 @@ const cssSelectorBuilder = {
 
     const pseudoElementStr = this.pseudoElem.length === 0 ? '' : `::${this.pseudoElem}`;
 
-    this.resetObject();
-
     return `${tagStr}${idStr}${classesStr}${attributesStr}${pseudoClassesStr}${pseudoElementStr}`;
+  }
+}
+
+const cssSelectorBuilder = {
+
+  element(tag) {
+    return new CssSelector({
+      tag,
+      identifier: '',
+      classes: [],
+      attributes: [],
+      pseudoClasses: [],
+      pseudoElem: '',
+      previousCallIdentifier: identifierPairs.element,
+    });
+  },
+
+  id(identifier) {
+    return new CssSelector({
+      tag: '',
+      identifier,
+      classes: [],
+      attributes: [],
+      pseudoClasses: [],
+      pseudoElem: '',
+      previousCallIdentifier: identifierPairs.id,
+    });
+  },
+
+  class(domClass) {
+    return new CssSelector({
+      tag: '',
+      identifier: '',
+      classes: [domClass],
+      attributes: [],
+      pseudoClasses: [],
+      pseudoElem: '',
+      previousCallIdentifier: identifierPairs.class,
+    });
+  },
+
+  attr(value) {
+    return new CssSelector({
+      tag: '',
+      identifier: '',
+      classes: [],
+      attributes: [value],
+      pseudoClasses: [],
+      pseudoElem: '',
+      previousCallIdentifier: identifierPairs.attribute,
+    });
+  },
+
+  pseudoClass(value) {
+    return new CssSelector({
+      tag: '',
+      identifier: '',
+      classes: [],
+      attributes: [],
+      pseudoClasses: [value],
+      pseudoElem: '',
+      previousCallIdentifier: identifierPairs.pseudoClass,
+    });
+  },
+
+  pseudoElement(value) {
+    return new CssSelector({
+      tag: '',
+      identifier: '',
+      classes: [],
+      attributes: [],
+      pseudoClasses: [],
+      pseudoElem: value,
+      previousCallIdentifier: identifierPairs.pseudoElement,
+    });
   },
 
   combine(selector1, combinator, selector2) {
