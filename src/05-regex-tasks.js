@@ -59,7 +59,7 @@ function getRegexForPitSpot() {
 
 /**
  * Returns the password validator regex.
- * Regex will validate a password to make sure it meets the follwing criteria:
+ * Regex will validate a password to make sure it meets the following criteria:
  *  - At least specified characters long (argument minLength)
  *  - Contains a lowercase letter
  *  - Contains an uppercase letter
@@ -78,9 +78,6 @@ function getRegexForPitSpot() {
  *   'Pa55'.match(validator) => false
  */
 function getPasswordValidator(minLength) {
-  // const str = `^ (?=(?:.*[A-Z]){1,})(?=(?:.*[a-z]){1,})(?=(?:.*d){1,}) ([A-Za-z0-9]{${
-  //   minLength
-  // },}) $`;
   return new RegExp(`^
   (?=(?:.*[A-Z]){1,})
   (?=(?:.*[a-z]){1,})

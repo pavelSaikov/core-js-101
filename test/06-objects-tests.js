@@ -3,7 +3,7 @@ const assert = require('assert');
 const tasks = require('../src/06-objects-tasks');
 it.optional = require('../extensions/it-optional');
 
-describe.only('06-objects-tasks', () => {
+describe('06-objects-tasks', () => {
   it.optional('Rectangle constructor should return the rectangle object', () => {
     const rect = new tasks.Rectangle(10, 20);
 
@@ -202,7 +202,7 @@ describe.only('06-objects-tasks', () => {
         '+',
         builder.element('table'),
       ).stringify(),
-      '#charter1.touch + table',
+      '#charter1.touch + table', // /this
     );
 
     assert.equal(

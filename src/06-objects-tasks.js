@@ -66,7 +66,7 @@ function fromJSON(proto, json) {
  *
  *    element#id.class[attr]:pseudoClass::pseudoElement
  *              \----/\----/\----------/
- *              Can be several occurences
+ *               Can be several occurences
  *
  * All types of selectors can be combined using the combinators ' ','+','~','>' .
  *
@@ -111,34 +111,190 @@ function fromJSON(proto, json) {
  *
  *  For more examples see unit tests.
  */
+const identifierPairs = {
+  element: 0,
+  id: 1,
+  class: 2,
+  attribute: 3,
+  pseudoClass: 4,
+  pseudoElement: 5,
+  defaultValue: -1,
+};
+
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  tag: '',
+  identifier: '',
+  classes: [],
+  attributes: [],
+  pseudoClasses: [],
+  pseudoElem: '',
+  previousCallIdentifier: identifierPairs.defaultValue,
+
+
+  element(value) {
+    if (this.previousCallIdentifier > identifierPairs.element) {
+      this.resetObject();
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
+      );
+    }
+
+    const {
+      id, attr, pseudoClass, pseudoElement, stringify, combine, resetObject,
+    } = this;
+    const cls = this.class;
+    this.previousCallIdentifier = identifierPairs.element;
+
+    return {
+      tag: value,
+      identifier: '',
+      classes: [],
+      attributes: [],
+      pseudoClasses: [],
+      pseudoElem: '',
+      previousCallIdentifier: identifierPairs.element,
+      element: () => {
+        throw new Error(
+          'Element, id and pseudo-element should not occur more then one time inside the selector',
+        );
+      },
+      id,
+      class: cls,
+      attr,
+      pseudoClass,
+      pseudoElement,
+      stringify,
+      combine,
+      resetObject,
+    };
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    if (this.identifier.length !== 0) {
+      this.resetObject();
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector',
+      );
+    }
+
+    if (this.previousCallIdentifier > identifierPairs.id) {
+      this.resetObject();
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
+      );
+    }
+
+    this.previousCallIdentifier = identifierPairs.id;
+
+    this.identifier = value;
+    return this;
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    if (this.previousCallIdentifier > identifierPairs.class) {
+      this.resetObject();
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
+      );
+    }
+
+    this.previousCallIdentifier = identifierPairs.class;
+
+    this.classes.push(value);
+    return this;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    if (this.previousCallIdentifier > identifierPairs.attribute) {
+      this.resetObject();
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
+      );
+    }
+
+    this.previousCallIdentifier = identifierPairs.attribute;
+
+    this.attributes.push(value);
+    return this;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    if (this.previousCallIdentifier > identifierPairs.pseudoClass) {
+      this.resetObject();
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
+      );
+    }
+
+    this.previousCall = 'pseudo-class';
+
+    this.pseudoClasses.push(value);
+    return this;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    if (this.pseudoElem.length !== 0) {
+      this.resetObject();
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector',
+      );
+    }
+
+    if (this.previousCallIdentifier > identifierPairs.pseudoElement) {
+      this.resetObject();
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
+      );
+    }
+
+    this.previousCall = 'pseudo-element';
+
+    this.pseudoElem = value;
+    return this;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  stringify() {
+    const tagStr = this.tag.length === 0 ? '' : `${this.tag}`;
+
+    const idStr = this.identifier.length === 0 ? '' : `#${this.identifier}`;
+
+    const classesStr = this.classes.reduce(
+      (str, domClass) => str.concat(`.${domClass}`),
+      '',
+    );
+
+    const attributesStr = this.attributes.reduce(
+      (str, attribute) => str.concat(`[${attribute}]`),
+      '',
+    );
+
+    const pseudoClassesStr = this.pseudoClasses.reduce(
+      (str, domPseudoClass) => str.concat(`:${domPseudoClass}`),
+      '',
+    );
+
+    const pseudoElementStr = this.pseudoElem.length === 0 ? '' : `::${this.pseudoElem}`;
+
+    this.resetObject();
+
+    return `${tagStr}${idStr}${classesStr}${attributesStr}${pseudoClassesStr}${pseudoElementStr}`;
+  },
+
+  combine(selector1, combinator, selector2) {
+    return {
+      stringify: () => `${selector1.stringify()} ${combinator} ${selector2.stringify()}`,
+    };
+  },
+
+  resetObject() {
+    this.tag = '';
+    this.identifier = '';
+    this.classes = [];
+    this.attributes = [];
+    this.pseudoClasses = [];
+    this.pseudoElem = '';
+    this.previousCallIdentifier = identifierPairs.defaultValue;
   },
 };
 
