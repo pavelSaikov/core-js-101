@@ -465,7 +465,7 @@ function toNaryString(num, n) {
 /**
  * Returns the commom directory path for specified array of full filenames.
  *
- * @param {array} pathes
+ * @param {array} paths
  * @return {string}
  *
  * @example:
@@ -474,8 +474,55 @@ function toNaryString(num, n) {
  *   ['/web/assets/style.css', '/.bin/mocha',  '/read.me'] => '/'
  *   ['/web/favicon.ico', '/web-scripts/dump', '/webalizer/logs'] => '/'
  */
-function getCommonDirectoryPath(/* pathes */) {
-  throw new Error('Not implemented');
+function getCommonDirectoryPath(paths) {
+  let isAllHaveTheSameRootDirectory = true;
+  for (let i = 0; i < paths.length; i += 1) {
+    if (paths[i][0] !== '/') {
+      isAllHaveTheSameRootDirectory = false;
+      break;
+    }
+  }
+
+  if (!isAllHaveTheSameRootDirectory) {
+    return '';
+  }
+
+  const splittedPaths = paths.map((path) => path.split('/'));
+
+  let shortestPath = splittedPaths[0];
+  splittedPaths.forEach((path) => {
+    if (path.length < shortestPath.length) {
+      shortestPath = path;
+    }
+  });
+
+  let commonPath = '';
+  for (let i = 0; i < shortestPath.length; i += 1) {
+    const partOfPath = shortestPath[i];
+
+    if (partOfPath.includes('.')) break;
+
+    let isOtherPathsContainsFolder = true;
+    for (let j = 0; j < splittedPaths.length; j += 1) {
+      if (splittedPaths[j][i] !== partOfPath) {
+        isOtherPathsContainsFolder = false;
+        break;
+      }
+    }
+
+    if (!isOtherPathsContainsFolder) {
+      break;
+    }
+
+    let separator = '/';
+    if (i === 0) separator = '';
+
+    commonPath = `${commonPath}${separator}${partOfPath}`;
+  }
+
+  commonPath = `${commonPath}/`;
+
+  return commonPath;
 }
 
 /**
@@ -496,8 +543,22 @@ function getCommonDirectoryPath(/* pathes */) {
  *                         [ 6 ]]
  *
  */
-function getMatrixProduct(/* m1, m2 */) {
-  throw new Error('Not implemented');
+function getMatrixProduct(m1, m2) {
+  const widthOfResultMatrix = m1.length;
+  const heightOfResultMatrix = m2[0].length;
+  const resultMatrix = Array(heightOfResultMatrix).fill(Array(widthOfResultMatrix).fill(0));
+
+  for (let i = 0; i < m1.length; i += 1) {
+    for (let j = 0; j < m1[0].length; i += 1) {
+      let result = 0;
+
+      for (let k = 0; k < m1[0].length; k += 1) result += m1[i][k] * m2[k][j];
+
+      resultMatrix[i][j] = result;
+    }
+  }
+
+  return resultMatrix;
 }
 
 /**
