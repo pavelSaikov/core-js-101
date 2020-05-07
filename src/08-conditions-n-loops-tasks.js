@@ -546,10 +546,14 @@ function getCommonDirectoryPath(paths) {
 function getMatrixProduct(m1, m2) {
   const widthOfResultMatrix = m1.length;
   const heightOfResultMatrix = m2[0].length;
-  const resultMatrix = Array(heightOfResultMatrix).fill(Array(widthOfResultMatrix).fill(0));
+
+  const resultMatrix = Array(heightOfResultMatrix).fill(0).reduce((matrix) => {
+    matrix.push(Array(widthOfResultMatrix).fill(0));
+    return matrix;
+  }, []);
 
   for (let i = 0; i < m1.length; i += 1) {
-    for (let j = 0; j < m1[0].length; i += 1) {
+    for (let j = 0; j < m2[0].length; j += 1) {
       let result = 0;
 
       for (let k = 0; k < m1[0].length; k += 1) result += m1[i][k] * m2[k][j];
@@ -591,8 +595,53 @@ function getMatrixProduct(m1, m2) {
  *    [    ,   ,    ]]
  *
  */
-function evaluateTicTacToePosition(/* position */) {
-  throw new Error('Not implemented');
+function evaluateTicTacToePosition(position) {
+  const symbols = ['X', '0'];
+
+  let result;
+  symbols.forEach((symbol) => {
+    let numberOfSymbolsInSequency = 0;
+
+    for (let i = 0; i < 3; i += 1) {
+      for (let j = 0; j < 3; j += 1) {
+        if (position[i][j] === symbol) numberOfSymbolsInSequency += 1;
+      }
+
+      if (numberOfSymbolsInSequency === 3) result = symbol;
+
+      numberOfSymbolsInSequency = 0;
+    }
+
+    numberOfSymbolsInSequency = 0;
+
+    for (let i = 0; i < 3; i += 1) {
+      for (let j = 0; j < 3; j += 1) {
+        if (position[j][i] === symbol) numberOfSymbolsInSequency += 1;
+      }
+
+      if (numberOfSymbolsInSequency === 3) result = symbol;
+
+      numberOfSymbolsInSequency = 0;
+    }
+
+    numberOfSymbolsInSequency = 0;
+
+    for (let i = 0; i < 3; i += 1) {
+      if (position[i][i] === symbol) numberOfSymbolsInSequency += 1;
+    }
+
+    if (numberOfSymbolsInSequency === 3) result = symbol;
+
+    numberOfSymbolsInSequency = 0;
+
+    for (let i = 0, j = 3; i < 3; i += 1, j -= 1) {
+      if (position[i][j] === symbol) numberOfSymbolsInSequency += 1;
+    }
+
+    if (numberOfSymbolsInSequency === 3) result = symbol;
+  });
+
+  return result;
 }
 
 module.exports = {
