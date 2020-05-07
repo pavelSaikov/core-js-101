@@ -634,7 +634,7 @@ function evaluateTicTacToePosition(position) {
 
     numberOfSymbolsInSequency = 0;
 
-    for (let i = 0, j = 3; i < 3; i += 1, j -= 1) {
+    for (let i = 0, j = 2; i < 3; i += 1, j -= 1) {
       if (position[i][j] === symbol) numberOfSymbolsInSequency += 1;
     }
 
