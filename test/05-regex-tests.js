@@ -57,7 +57,7 @@ describe('05-regex-tasks', () => {
   });
 
 
-  it.optional('getPasswordValidator should return the password validator', () => {
+  it('getPasswordValidator should return the password validator', () => {
     const result = tasks.getPasswordValidator(6);
 
     [
